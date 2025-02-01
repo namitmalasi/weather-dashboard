@@ -20,3 +20,25 @@ A modern, responsive weather app built with **React.js** and **Tailwind CSS**, u
    git clone https://github.com/your-username/weather-app.git
    cd weather-app
    ```
+2. **Install dependencies**
+   ```sh
+   npm install
+   ```
+3. **Get API Key from OpenWeatherMap**
+   ```sh
+   Create a free account at OpenWeatherMap.
+   Get your API Key.
+   ```
+4. **Create an .env file**
+
+```sh
+  VITE_API_KEY=your_api_key_here
+```
+
+5 **Run the app**
+
+```sh
+  npm start
+  or
+  npm run dev
+```
