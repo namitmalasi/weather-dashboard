@@ -1,74 +1,51 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  useCallback,
-  useEffect,
-} from "react";
+import { createContext, useState, useEffect } from "react";
 import axios from "axios";
 
-const WeatherContext = createContext(undefined);
+export const WeatherContext = createContext();
 
 export const WeatherProvider = ({ children }) => {
-  const [weatherData, setWeatherData] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [weather, setWeather] = useState(null);
+  const [forecast, setForecast] = useState([]);
   const [error, setError] = useState(null);
-  const [unit, setUnit] = useState("celsius");
+  const [city, setCity] = useState(localStorage.getItem("lastCity") || "Delhi");
+  const [unit, setUnit] = useState("metric"); // Default Celsius
 
-  const searchCity = useCallback(async (city) => {
+  const API_KEY = import.meta.env.VITE_API_KEY;
+  const WEATHER_URL = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=${unit}&appid=${API_KEY}`;
+  const FORECAST_URL = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&units=${unit}&appid=${API_KEY}`;
+
+  const fetchWeather = async () => {
     try {
-      setLoading(true);
       setError(null);
+      const [weatherResponse, forecastResponse] = await Promise.all([
+        axios.get(WEATHER_URL),
+        axios.get(FORECAST_URL),
+      ]);
+      setWeather(weatherResponse.data);
 
-      const response = await axios.get(`${import.meta.env.VITE_BASE_URL}`, {
-        params: {
-          q: city,
-          key: `${import.meta.env.VITE_API_KEY}`,
-        },
-      });
+      // Extract daily forecasts (every 24 hours at noon)
+      const dailyForecasts = forecastResponse.data.list.filter((item) =>
+        item.dt_txt.includes("12:00:00")
+      );
+      setForecast(dailyForecasts);
 
-      setWeatherData(response.data);
       localStorage.setItem("lastCity", city);
     } catch (err) {
-      setError("Failed to fetch weather data. Please try again.");
-      setWeatherData(null);
-    } finally {
-      setLoading(false);
+      setError("City not found. Please try again.");
     }
-  }, []);
+  };
 
-  // Load last searched city on mount
   useEffect(() => {
-    const lastCity = localStorage.getItem("lastCity");
-    if (lastCity) {
-      searchCity(lastCity);
-    }
-  }, [searchCity]);
-
-  // Poll weather data every 30 seconds
-  useEffect(() => {
-    if (!weatherData?.name) return;
-
-    const interval = setInterval(() => {
-      searchCity(weatherData.name);
-    }, 30000);
-
+    fetchWeather();
+    const interval = setInterval(fetchWeather, 30000);
     return () => clearInterval(interval);
-  }, [weatherData?.name, searchCity]);
+  }, [city, unit]);
 
   return (
     <WeatherContext.Provider
-      value={{ weatherData, loading, error, searchCity, unit, setUnit }}
+      value={{ weather, forecast, city, setCity, unit, setUnit, error }}
     >
       {children}
     </WeatherContext.Provider>
   );
-};
-
-export const useWeather = () => {
-  const context = useContext(WeatherContext);
-  if (context === undefined) {
-    throw new Error("useWeather must be used within a WeatherProvider");
-  }
-  return context;
 };

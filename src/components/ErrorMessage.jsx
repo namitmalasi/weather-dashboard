@@ -1,8 +1,5 @@
+const ErrorMessage = ({ message }) => {
+  return message ? <p className="error">{message}</p> : null;
+};
 
-const ErrorMessage = () => {
-  return (
-    <div>ErrorMessage</div>
-  )
-}
-
-export default ErrorMessage
+export default ErrorMessage;

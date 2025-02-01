@@ -1,1 +1,25 @@
 @import "tailwindcss";
+
+.app {
+  text-align: center;
+  font-family: Arial, sans-serif;
+}
+
+.search-bar input {
+  padding: 10px;
+  margin-right: 10px;
+}
+
+button {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.weather-card {
+  margin-top: 20px;
+  padding: 20px;
+  border: 1px solid #ddd;
+  display: inline-block;
+  /* background: #f9f9f9; */
+  border-radius: 8px;
+}
